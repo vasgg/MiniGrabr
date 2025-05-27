@@ -1,14 +1,33 @@
-from enum import Enum
+from enum import StrEnum, auto
 
 
-class OrderStatus(Enum):
-    DRAFT = 'draft'
-    PUBLISHED = 'published'
-    WIP = 'wip'
-    DELETED = 'deleted'
-    DONE = 'done'
+class OrderStatus(StrEnum):
+    DRAFT = auto()
+    PUBLISHED = auto()
+    WIP = auto()
+    DELETED = auto()
+    DONE = auto()
 
 
-class UserType(Enum):
-    CUSTOMER = 'customer'
-    FREELANCER = 'freelancer'
+class UserType(StrEnum):
+    CUSTOMER = auto()
+    TRAVELER = auto()
+
+
+class MenuButton(StrEnum):
+    MAIN_MENU = auto()
+    CLOSE = auto()
+    BACK = auto()
+    DELETE = auto()
+
+
+class Crud(StrEnum):
+    CREATE = auto()
+    READ = auto()
+    UPDATE = auto()
+    DELETE = auto()
+
+
+class OrderAction(StrEnum):
+    TAKE = auto()
+    SHOW_SENDER = auto()

@@ -21,7 +21,7 @@ class DBConfig(BaseSettings):
 
     @property
     def aiosqlite_db_url(self) -> str:
-        return f'sqlite+aiosqlite:///src/database/{self.DB_NAME}.db'
+        return f"sqlite+aiosqlite:///src/database/{self.NAME}.db"
 
 
 class Settings(BaseSettings):

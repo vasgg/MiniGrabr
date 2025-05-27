@@ -4,13 +4,12 @@ from typing import Literal
 import arrow
 from sqlalchemy import Result, select, update
 
-from core.database.models import Order, User
-from core.resources.enums import OrderStatus
+from database.models import User
 
 
 async def create_user_in_db(event, session) -> User:
     new_user = User(
-        telegram_id=event.from_user.id,
+        id=event.from_user.id,
         username=event.from_user.username,
         fullname=event.from_user.full_name,
     )
@@ -29,15 +28,15 @@ async def get_user_from_db(event, session) -> User:
 
 
 async def get_deals_counter(
-    user_id: int, mode: Literal['customer', 'freelancer'], session
+    user_id: int, mode: Literal["customer", "traveler"], session
 ) -> int:
     counter = 0
     match mode:
-        case 'customer':
+        case "customer":
             query = select(Order).filter(
                 Order.customer_id == user_id, Order.status == OrderStatus.DONE
             )
-        case 'freelancer':
+        case "traveler":
             query = select(Order).filter(
                 Order.worker_id == user_id, Order.status == OrderStatus.DONE
             )
@@ -52,7 +51,7 @@ async def get_deals_counter(
 
 def get_time_since_registration(created_at: datetime) -> str:
     created_at = arrow.get(created_at)
-    return created_at.humanize(locale='ru')
+    return created_at.humanize(locale="ru")
 
 
 async def rename_user(telegram_id: int, new_username: str, session) -> None:
@@ -64,15 +63,21 @@ async def rename_user(telegram_id: int, new_username: str, session) -> None:
     await session.execute(new_name)
 
 
-async def change_user_balance(telegram_id: int, current_balance: int, amount: int, mode: Literal['add', 'subtract'], session) -> None:
+async def change_user_balance(
+    telegram_id: int,
+    current_balance: int,
+    amount: int,
+    mode: Literal["add", "subtract"],
+    session,
+) -> None:
     match mode:
-        case 'add':
+        case "add":
             new_balance = (
                 update(User)
                 .filter(User.telegram_id == telegram_id)
                 .values(balance=current_balance + amount)
             )
-        case 'subtract':
+        case "subtract":
             new_balance = (
                 update(User)
                 .filter(User.telegram_id == telegram_id)

@@ -6,32 +6,32 @@ new_order_buttons = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text='✏️ Изменить название', callback_data='change_order_name'
+                text="✏️ Изменить название", callback_data="change_order_name"
             ),
         ],
         [
             InlineKeyboardButton(
-                text='💎 Изменить бюжет', callback_data='change_order_budget'
+                text="💎 Изменить бюжет", callback_data="change_order_budget"
             ),
         ],
         [
             InlineKeyboardButton(
-                text='📄 Изменить описание', callback_data='change_order_description'
+                text="📄 Изменить описание", callback_data="change_order_description"
             ),
         ],
         [
             InlineKeyboardButton(
-                text='🖇️ Добавить ссылку', callback_data='change_order_link'
+                text="🖇️ Добавить ссылку", callback_data="change_order_link"
             ),
         ],
         [
             InlineKeyboardButton(
-                text='❌ Удалить черновик', callback_data='delete_draft'
+                text="❌ Удалить черновик", callback_data="delete_draft"
             ),
         ],
         [
-            InlineKeyboardButton(text='← Меню заказчика', callback_data='customer'),
-            InlineKeyboardButton(text='💠 Опубликовать', callback_data='publish'),
+            InlineKeyboardButton(text="← Меню заказчика", callback_data="customer"),
+            InlineKeyboardButton(text="💠 Опубликовать", callback_data="publish"),
         ],
     ]
 )
@@ -39,7 +39,7 @@ new_order_buttons = InlineKeyboardMarkup(
 back_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text='← Назад', callback_data='customer_make_order'),
+            InlineKeyboardButton(text="← Назад", callback_data="customer_make_order"),
         ]
     ]
 )
@@ -49,10 +49,10 @@ def get_publish_order_buttons(order_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text='← Назад в меню', callback_data='customer'),
+                InlineKeyboardButton(text="← Назад в меню", callback_data="customer"),
                 InlineKeyboardButton(
-                    text='⏩ Переслать в канал',
-                    callback_data=f'forward_order_{order_id}',
+                    text="⏩ Переслать в канал",
+                    callback_data=f"forward_order_{order_id}",
                 ),
             ]
         ]
@@ -60,16 +60,16 @@ def get_publish_order_buttons(order_id: int) -> InlineKeyboardMarkup:
 
 
 def change_order_params_keyboard(
-    mode: Literal['name', 'budget', 'description', 'link']
+    mode: Literal["name", "budget", "description", "link"],
 ) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text='💾 Сохранить', callback_data=f'save_order_{mode}'
+                    text="💾 Сохранить", callback_data=f"save_order_{mode}"
                 ),
                 InlineKeyboardButton(
-                    text='⌫ Изменить', callback_data=f'change_order_{mode}'
+                    text="⌫ Изменить", callback_data=f"change_order_{mode}"
                 ),
             ],
         ]

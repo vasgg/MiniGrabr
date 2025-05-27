@@ -10,15 +10,19 @@ logger = logging.getLogger(__name__)
 
 
 async def add_user_to_db(user, db_session: AsyncSession) -> BotUser:
-    new_user = BotUser(tg_id=user.id, fullname=user.full_name, username=compose_username(user))
+    new_user = BotUser(
+        id=user.id, fullname=user.full_name, username=compose_username(user)
+    )
     db_session.add(new_user)
     await db_session.flush()
     logger.info(f"New user created: {new_user}")
     return new_user
 
 
-async def get_user_from_db_by_tg_id(telegram_id: int, db_session: AsyncSession) -> BotUser | None:
-    query = select(BotUser).filter(BotUser.tg_id == telegram_id)
+async def get_user_from_db_by_tg_id(
+    telegram_id: int, db_session: AsyncSession
+) -> BotUser | None:
+    query = select(BotUser).filter(BotUser.id == telegram_id)
     result: Result = await db_session.execute(query)
     return result.scalar_one_or_none()
 

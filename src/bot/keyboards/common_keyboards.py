@@ -1,191 +1,169 @@
 from typing import Literal
 
-from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from bot.internal.enums import Crud, MenuButton, OrderAction, UserType
+from bot.keyboards.callbacks import CrudCallbackFactory, MenuButtonsCallbackFactory, OrderActionCallbackFactory, \
+    OrderInfoCallbackFactory, \
+    SendMessageCallbackFactory, UserTypeCallbackFactory
+from database.models import Order, User
 
 
-def get_orders_keyboard(
-    orders: list, mode: Literal['customer', 'freelancer']
+def role_selector_kb() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    for text, callback in [
+        ("I am a customer", UserTypeCallbackFactory(user_type=UserType.CUSTOMER).pack()),
+        ("I am a traveler", UserTypeCallbackFactory(user_type=UserType.TRAVELER).pack()),
+    ]:
+        kb.button(text=text, callback_data=callback)
+    kb.adjust(1)
+    return kb.as_markup()
+
+
+def get_orders_kb(
+    orders: list[Order],
+    mode: UserType,
 ) -> InlineKeyboardMarkup:
-    buttons = []
+    kb = InlineKeyboardBuilder()
     for order in sorted(orders, key=lambda x: x.id, reverse=True):
         match mode:
-            case 'customer':
-                button = [
-                    InlineKeyboardButton(
-                        text=f'➡️ id{order.id} · {order.name}',
-                        callback_data=f'customer_get_order_info:{order.id}',
-                    )
-                ]
-                buttons.append(button)
-            case 'freelancer':
-                button = [
-                    InlineKeyboardButton(
-                        text=f'➡️ id{order.id} · {order.name}',
-                        callback_data=f'fl_get_order_info:{order.id}',
-                    )
-                ]
-                buttons.append(button)
-    buttons.append([InlineKeyboardButton(text='← Закрыть', callback_data='close')])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
+            case UserType.CUSTOMER:
+                kb.button(
+                    text=f"➡️ id{order.id} · {order.name}",
+                    callback_data=OrderInfoCallbackFactory(user_type=UserType.CUSTOMER, order_id=order.id).pack()
+                )
+            case UserType.TRAVELER:
+                kb.button(
+                    text=f"➡️ id{order.id} · {order.name}",
+                    callback_data=OrderInfoCallbackFactory(user_type=UserType.TRAVELER, order_id=order.id).pack()
+                )
+    kb.button(text="← close", callback_data=MenuButtonsCallbackFactory(button=MenuButton.CLOSE).pack())
+    kb.adjust(1)
+    return kb.as_markup()
 
 
 def get_order_actions_keyboard(
-    order_id: int, mode: Literal['customer', 'freelancer']
+    order_id: int,
+    mode: UserType,
 ) -> InlineKeyboardMarkup:
-    buttons = []
+    kb = InlineKeyboardBuilder()
     match mode:
-        case 'customer':
-            buttons.append(
-                [
-                    InlineKeyboardButton(
-                        text='🗑 Удалить заказ',
-                        callback_data=f'customer_delete_order:{order_id}',
-                    )
-                ]
+        case UserType.CUSTOMER:
+            kb.button(
+                text='delete order',
+                callback_data=CrudCallbackFactory(
+                    user_type=UserType.CUSTOMER, action=Crud.DELETE, entity_id=order_id).pack()
             )
-        case 'freelancer':
-            buttons.extend(
-                [
-                    [
-                        InlineKeyboardButton(
-                            text='💼 Заказчик',
-                            callback_data=f'customer_of_order:{order_id}',
-                        ),
-                    ],
-                    [
-                        InlineKeyboardButton(
-                            text='⚡️ Взять заказ',
-                            callback_data=f'take_order:{order_id}',
-                        )
-                    ],
-                ]
+        case UserType.TRAVELER:
+            kb.button(
+                text='Sender',
+                callback_data=OrderActionCallbackFactory(
+                    action=OrderAction.SHOW_SENDER, order_id=order_id).pack()
             )
-    buttons.append([InlineKeyboardButton(text='← Закрыть', callback_data='close')])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-role_selector = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text='💼 Режим заказчика', callback_data='customer'),
-        ],
-        [
-            InlineKeyboardButton(
-                text='‍💻 Режим фрилансера', callback_data='freelancer'
-            ),
-        ],
-    ],
-)
+            kb.button(
+                text='take order',
+                callback_data=OrderActionCallbackFactory(
+                    action=OrderAction.TAKE, order_id=order_id).pack()
+            )
+    kb.button(text="← close", callback_data=MenuButtonsCallbackFactory(button=MenuButton.CLOSE).pack())
+    kb.adjust(1)
+    return kb.as_markup()
 
 
 close_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text='← Закрыть', callback_data='close'),
+            InlineKeyboardButton(
+                text="← close",
+                callback_data=MenuButtonsCallbackFactory(button=MenuButton.CLOSE).pack()
+            ),
         ]
     ]
 )
 
 
 account_buttons = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text='💳 Пополнить баланс', callback_data='user_balance'
-                ),
-                InlineKeyboardButton(text='💵 Вывод средств', callback_data='withdraw'),
-            ],
-            [
-                InlineKeyboardButton(
-                    text='📝 Изменить публичное имя', callback_data='rename_account'
-                ),
-            ],
-            [
-                InlineKeyboardButton(text='← Закрыть', callback_data='close'),
-            ],
-        ]
-    )
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="💳 Пополнить баланс", callback_data="user_balance"
+            ),
+            InlineKeyboardButton(text="💵 Вывод средств", callback_data="withdraw"),
+        ],
+        [
+            InlineKeyboardButton(
+                text="📝 Изменить публичное имя", callback_data="rename_account"
+            ),
+        ],
+        [
+            InlineKeyboardButton(text="← Закрыть", callback_data="close"),
+        ],
+    ]
+)
 
 
 def delete_record_keyboad(
-    mode: Literal['draft', 'order', 'application'], record_id: int = None
+    mode: Literal["draft", "order", "application"], record_id: int = None
 ) -> InlineKeyboardMarkup:
     buttons = []
     match mode:
-        case 'draft':
+        case "draft":
             buttons.append(
                 [
-                    InlineKeyboardButton(text='⌫ Отмена', callback_data='сlose'),
+                    InlineKeyboardButton(text="⌫ Отмена", callback_data="сlose"),
                     InlineKeyboardButton(
-                        text='❌ Удалить', callback_data='confirm_delete_draft'
+                        text="❌ Удалить", callback_data="confirm_delete_draft"
                     ),
                 ]
             )
-        case 'order':
+        case "order":
             buttons.append(
                 [
-                    InlineKeyboardButton(text='⌫ Отмена', callback_data='close'),
+                    InlineKeyboardButton(text="⌫ Отмена", callback_data="close"),
                     InlineKeyboardButton(
-                        text='❌ Удалить',
-                        callback_data=f'delete_published_order:{record_id}',
+                        text="❌ Удалить",
+                        callback_data=f"delete_published_order:{record_id}",
                     ),
                 ]
             )
-        case 'application':
+        case "application":
             buttons.append(
                 [
-                    InlineKeyboardButton(text='⌫ Отмена', callback_data='close'),
+                    InlineKeyboardButton(text="⌫ Отмена", callback_data="close"),
                     InlineKeyboardButton(
-                        text='❌ Удалить',
-                        callback_data=f'fl_delete_application:{record_id}'
-                    )
+                        text="❌ Удалить",
+                        callback_data=f"fl_delete_application:{record_id}",
+                    ),
                 ]
             )
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
 
-def get_answer_keyboard(application_id: int, mode: Literal['customer', 'freelancer']) -> InlineKeyboardMarkup:
-    match mode:
-        case 'customer':
-            return InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text='💬 Ответить', callback_data=f'fl_send_message:{application_id}'
-                        ),
-                    ],
-                    [
-                        InlineKeyboardButton(text='← Закрыть', callback_data='close')
-                    ],
-                ]
-            )
-        case 'freelancer':
-            return InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text='💬 Ответить', callback_data=f'customer_send_message:{application_id}'
-                        ),
-                    ],
-                    [
-                        InlineKeyboardButton(text='← Закрыть', callback_data='close')
-                    ],
-                ]
-            )
-
-
-async def get_back_to_menu_and_pay_buttons(state: FSMContext, amount) -> InlineKeyboardMarkup:
-    data = await state.get_data()
-    current_mode = data.get('current_mode', 'customer')
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text='← Главное меню', callback_data=current_mode),
-                InlineKeyboardButton(text='💳 Оплатить', callback_data=f'add_funds:{amount * 100}'),
-            ]
-        ]
+def get_answer_keyboard(
+    application_id: int,
+    mode: UserType,
+) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    kb.button(
+        text="Answer",
+        callback_data=SendMessageCallbackFactory(
+            user_type=mode, application_id=application_id
+        ).pack(),
     )
+    kb.button(text="← close", callback_data=MenuButtonsCallbackFactory(button=MenuButton.CLOSE).pack())
+    kb.adjust(1)
+    return kb.as_markup()
+
+
+async def get_back_to_menu_and_pay_buttons(
+    user: User,
+) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    kb.button(
+        text="Main menu",
+        callback_data=MenuButtonsCallbackFactory(button=MenuButton.MAIN_MENU, user_type=user.mode).pack()
+    )
+    kb.adjust(1)
+    return kb.as_markup()

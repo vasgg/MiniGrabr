@@ -1,16 +1,11 @@
 import logging
 from asyncio import run
-
-from aiogram.fsm.storage.memory import MemoryStorage
+from bot.handlers.common_handlers import router as common_router
+from aiogram.fsm.storage.memory import MemoryStorage, SimpleEventIsolation
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from bot.handlers.ai import router as ai_router
-from bot.handlers.base import router as base_router
-from bot.handlers.command import router as commands_router
-from bot.handlers.payment import router as payment_router
-from bot.handlers.errors import router as error_router
 from bot.config import settings
 from bot.internal.helpers import setup_logs
 from bot.internal.notify_admin import on_shutdown, on_startup
@@ -18,7 +13,7 @@ from bot.middlewares.auth import AuthMiddleware
 from bot.middlewares.logging import LoggingMiddleware
 from bot.middlewares.session import DBSessionMiddleware
 from bot.middlewares.updates_dumper import UpdatesDumperMiddleware
-from database.database_connector import get_db
+from database.db import get_db
 
 
 async def main():
@@ -28,8 +23,10 @@ async def main():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     storage = MemoryStorage()
-    dispatcher = Dispatcher(storage=storage, settings=settings)
-    db = get_db(settings)
+    dispatcher = Dispatcher(
+        storage=storage, settings=settings, events_isolation=SimpleEventIsolation()
+    )
+    db = get_db()
     db_session_middleware = DBSessionMiddleware(db)
     dispatcher.update.outer_middleware(UpdatesDumperMiddleware())
     dispatcher.startup.register(on_startup)
@@ -38,19 +35,12 @@ async def main():
     dispatcher.callback_query.middleware(db_session_middleware)
     dispatcher.message.middleware(AuthMiddleware())
     dispatcher.callback_query.middleware(AuthMiddleware())
-    dispatcher.update.middleware(UserLimitMiddleware())
     dispatcher.message.middleware.register(LoggingMiddleware())
     dispatcher.callback_query.middleware.register(LoggingMiddleware())
     dispatcher.include_routers(
-        commands_router,
-        payment_router,
-        base_router,
-        ai_router,
-        error_router,
+        common_router,
     )
-    # noinspection PyUnusedLocal
-    # daily_task = create_task(daily_routine(bot, settings, db))
-    logging.info("suslik robot started")
+    logging.info("minigrabr started")
     await dispatcher.start_polling(bot, skip_updates=True)
 
 
