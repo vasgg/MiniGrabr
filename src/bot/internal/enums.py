@@ -1,6 +1,10 @@
 from enum import StrEnum, auto
 
 
+class MenuButtons(StrEnum):
+    BACK = auto()
+
+
 class OrderStatus(StrEnum):
     DRAFT = auto()
     PUBLISHED = auto()
@@ -14,20 +18,13 @@ class UserType(StrEnum):
     TRAVELER = auto()
 
 
-class MenuButton(StrEnum):
-    MAIN_MENU = auto()
-    CLOSE = auto()
-    BACK = auto()
-    DELETE = auto()
+class CustomerAction(StrEnum):
+    CREATE_ORDER = auto()
+    MY_ORDERS = auto()
+    FIND_TRAVELER = auto()
 
 
-class Crud(StrEnum):
-    CREATE = auto()
-    READ = auto()
-    UPDATE = auto()
-    DELETE = auto()
-
-
-class OrderAction(StrEnum):
-    TAKE = auto()
-    SHOW_SENDER = auto()
+class TravelerAction(StrEnum):
+    CREATE_TRIP = auto()
+    FIND_ORDERS = auto()
+    MY_RESPONSES = auto()

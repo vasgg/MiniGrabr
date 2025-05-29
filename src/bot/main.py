@@ -1,6 +1,6 @@
 import logging
 from asyncio import run
-from bot.handlers.common_handlers import router as common_router
+from bot.handlers.base import router as common_router
 from aiogram.fsm.storage.memory import MemoryStorage, SimpleEventIsolation
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
